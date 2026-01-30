@@ -237,6 +237,34 @@
       .catch(function (e) { logEl.textContent += 'Error: ' + String(e) + '\n'; });
   };
 
+  // Debug button handler
+  var debugBtn = document.getElementById('debug');
+  if (debugBtn) {
+    debugBtn.onclick = function () {
+      logEl.textContent = 'Fetching debug info...\n';
+      httpJson('/setup/api/debug')
+        .then(function (info) {
+          logEl.textContent = 'DEBUG INFO:\n';
+          logEl.textContent += '================\n';
+          logEl.textContent += 'Configured: ' + info.configured + '\n';
+          logEl.textContent += 'Config path: ' + info.configPath + '\n';
+          logEl.textContent += 'Config exists: ' + info.configExists + '\n';
+          logEl.textContent += 'State dir: ' + info.stateDir + ' (exists: ' + info.stateDirExists + ')\n';
+          logEl.textContent += 'Workspace dir: ' + info.workspaceDir + ' (exists: ' + info.workspaceDirExists + ')\n';
+          logEl.textContent += 'Gateway running: ' + info.gatewayRunning + '\n';
+          logEl.textContent += 'Gateway proc exists: ' + info.gatewayProcExists + '\n';
+          logEl.textContent += 'Gateway proc PID: ' + info.gatewayProcPid + '\n';
+          if (info.configContent) {
+            logEl.textContent += '\nConfig content:\n' + JSON.stringify(info.configContent, null, 2) + '\n';
+          } else if (info.configError) {
+            logEl.textContent += '\nConfig error: ' + info.configError + '\n';
+          }
+          logEl.textContent += '================\n';
+        })
+        .catch(function (e) { logEl.textContent += 'Error: ' + String(e) + '\n'; });
+    };
+  }
+
   refreshStatus();
 
   // Run pre-flight checks on load

@@ -671,8 +671,9 @@ app.get("/setup", requireSetupAuth, (_req, res) => {
     <button id="run">Run setup</button>
     <button id="pairingApprove" style="background:#1f2937; margin-left:0.5rem">Approve pairing</button>
     <button id="reset" style="background:#444; margin-left:0.5rem">Reset setup</button>
+    <button id="debug" style="background:#1f2937; margin-left:0.5rem">Debug info</button>
     <pre id="log" style="white-space:pre-wrap"></pre>
-    <p class="muted">Reset deletes the Moltbot config file so you can rerun onboarding. Pairing approval lets you grant DM access when dmPolicy=pairing.</p>
+    <p class="muted">Reset deletes the Moltbot config file so you can rerun onboarding. Pairing approval lets you grant DM access when dmPolicy=pairing. Debug info shows current system state.</p>
   </div>
 
   <script src="/setup/app.js"></script>
@@ -839,20 +840,37 @@ app.post("/setup/api/run", requireSetupAuth, async (req, res) => {
 
   const payload = req.body || {};
   const onboardArgs = buildOnboardArgs(payload);
+
+  // Debug logging
+  console.error('[DEBUG] Onboard args:', onboardArgs);
+  console.error('[DEBUG] Payload authChoice:', payload.authChoice);
+  console.error('[DEBUG] Payload authSecret length:', payload.authSecret?.length || 0);
+  console.error('[DEBUG] Config path:', configPath());
+
   const onboard = await runCmd(MOLTBOT_NODE, moltArgs(onboardArgs));
+
+  console.error('[DEBUG] Onboard exit code:', onboard.code);
+  console.error('[DEBUG] isConfigured() after onboard:', isConfigured());
+  console.error('[DEBUG] Config file exists:', fs.existsSync(configPath()));
 
   let extra = "";
 
   const ok = onboard.code === 0 && isConfigured();
 
+  console.error('[DEBUG] Setup ok status:', ok, '(exit code:', onboard.code, ', configured:', isConfigured(), ')');
+
   // Optional channel setup (only after successful onboarding, and only if the installed CLI supports it).
   if (ok) {
+    console.error('[DEBUG] Configuring gateway settings...');
+
     // Ensure gateway token is written into config so the browser UI can authenticate reliably.
     // (We also enforce loopback bind since the wrapper proxies externally.)
     await runCmd(MOLTBOT_NODE, moltArgs(["config", "set", "gateway.auth.mode", "token"]));
     await runCmd(MOLTBOT_NODE, moltArgs(["config", "set", "gateway.auth.token", MOLTBOT_GATEWAY_TOKEN]));
     await runCmd(MOLTBOT_NODE, moltArgs(["config", "set", "gateway.bind", "loopback"]));
     await runCmd(MOLTBOT_NODE, moltArgs(["config", "set", "gateway.port", String(INTERNAL_GATEWAY_PORT)]));
+
+    console.error('[DEBUG] Gateway settings configured, restarting gateway...');
 
     const channelsHelp = await runCmd(MOLTBOT_NODE, moltArgs(["channels", "add", "--help"]));
     const helpText = channelsHelp.output || "";
@@ -925,9 +943,14 @@ app.post("/setup/api/run", requireSetupAuth, async (req, res) => {
     }
 
     // Apply changes immediately.
+    console.error('[DEBUG] Restarting gateway...');
     await restartGateway();
+    console.error('[DEBUG] Gateway restarted, checking if running...');
+    const running = await isGatewayRunning();
+    console.error('[DEBUG] Gateway running after restart:', running);
   }
 
+  console.error('[DEBUG] Returning response: ok=', ok);
   return res.status(ok ? 200 : 500).json({
     ok,
     output: `${onboard.output}${extra}`,
@@ -971,6 +994,36 @@ app.post("/setup/api/pairing/approve", requireSetupAuth, async (req, res) => {
   }
   const r = await runCmd(MOLTBOT_NODE, moltArgs(["pairing", "approve", String(channel), String(code)]));
   return res.status(r.code === 0 ? 200 : 500).json({ ok: r.code === 0, output: r.output });
+});
+
+// Debug endpoint to view config and gateway status
+app.get("/setup/api/debug", requireSetupAuth, async (_req, res) => {
+  try {
+    const info = {
+      configPath: configPath(),
+      configExists: fs.existsSync(configPath()),
+      stateDir: STATE_DIR,
+      stateDirExists: fs.existsSync(STATE_DIR),
+      workspaceDir: WORKSPACE_DIR,
+      workspaceDirExists: fs.existsSync(WORKSPACE_DIR),
+      gatewayRunning: await isGatewayRunning(),
+      gatewayProcExists: gatewayProc !== null,
+      gatewayProcPid: gatewayProc?.pid || null,
+      configured: isConfigured(),
+    };
+
+    if (info.configExists) {
+      try {
+        info.configContent = JSON.parse(fs.readFileSync(configPath(), "utf8"));
+      } catch (e) {
+        info.configError = String(e);
+      }
+    }
+
+    res.json(info);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
 });
 
 app.post("/setup/api/reset", requireSetupAuth, async (_req, res) => {
