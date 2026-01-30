@@ -946,7 +946,7 @@ app.post("/setup/api/run", requireSetupAuth, async (req, res) => {
     console.error('[DEBUG] Restarting gateway...');
     await restartGateway();
     console.error('[DEBUG] Gateway restarted, checking if running...');
-    const running = await isGatewayRunning();
+    const running = gatewayProc !== null;
     console.error('[DEBUG] Gateway running after restart:', running);
   }
 
@@ -1006,7 +1006,7 @@ app.get("/setup/api/debug", requireSetupAuth, async (_req, res) => {
       stateDirExists: fs.existsSync(STATE_DIR),
       workspaceDir: WORKSPACE_DIR,
       workspaceDirExists: fs.existsSync(WORKSPACE_DIR),
-      gatewayRunning: await isGatewayRunning(),
+      gatewayRunning: gatewayProc !== null,
       gatewayProcExists: gatewayProc !== null,
       gatewayProcPid: gatewayProc?.pid || null,
       configured: isConfigured(),
