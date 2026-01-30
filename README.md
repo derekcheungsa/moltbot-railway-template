@@ -16,26 +16,30 @@ This repo packages **Moltbot** for Railway with a small **/setup** web wizard so
 - During setup, the wrapper runs `moltbot onboard --non-interactive ...` inside the container, writes state to the volume, and then starts the gateway.
 - After setup, **`/` is Moltbot**. The wrapper reverse-proxies all traffic (including WebSockets) to the local gateway process.
 
-## Railway deploy instructions (what you’ll publish as a Template)
+## Railway deploy instructions (what you'll publish as a Template)
 
 In Railway Template Composer:
 
 1) Create a new template from this GitHub repo.
-2) Add a **Volume** mounted at `/data`.
+2) Configure the template:
+   - **Volume**: Pre-configured at `/data` (persisted across redeploys)
+   - **Variables** (see below)
+
 3) Set the following variables:
 
 Required:
 - `SETUP_PASSWORD` — user-provided password to access `/setup`
 
 Recommended:
-- `MOLTBOT_STATE_DIR=/data/.moltbot`
-- `MOLTBOT_WORKSPACE_DIR=/data/workspace`
+- `MOLTBOT_STATE_DIR=/data/.moltbot` (matches volume mount)
+- `MOLTBOT_WORKSPACE_DIR=/data/workspace` (matches volume mount)
 
 Optional:
-- `MOLTBOT_GATEWAY_TOKEN` — if not set, the wrapper generates one (not ideal). In a template, set it using a generated secret.
+- `MOLTBOT_GATEWAY_TOKEN` — if not set, the wrapper generates one. In a template, set this using a generated Railway reference for better security.
 
 Notes:
 - This template pins Moltbot to a known-good version by default via Docker build arg `MOLTBOT_VERSION`.
+- A persistent volume at `/data` is automatically included in this template.
 
 4) Enable **Public Networking** (HTTP). Railway will assign a domain.
 5) Deploy.
