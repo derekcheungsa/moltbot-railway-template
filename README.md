@@ -21,28 +21,35 @@ This repo packages **Moltbot** for Railway with a small **/setup** web wizard so
 In Railway Template Composer:
 
 1) Create a new template from this GitHub repo.
-2) Configure the template:
-   - **Volume**: Pre-configured at `/data` (persisted across redeploys)
-   - **Variables** (see below)
-
-3) Set the following variables:
+2) Set the following variables:
 
 Required:
 - `SETUP_PASSWORD` — user-provided password to access `/setup`
 
 Recommended:
-- `MOLTBOT_STATE_DIR=/data/.moltbot` (matches volume mount)
-- `MOLTBOT_WORKSPACE_DIR=/data/workspace` (matches volume mount)
+- `MOLTBOT_STATE_DIR=/data/.moltbot` (matches volume mount below)
+- `MOLTBOT_WORKSPACE_DIR=/data/workspace` (matches volume mount below)
 
 Optional:
 - `MOLTBOT_GATEWAY_TOKEN` — if not set, the wrapper generates one. In a template, set this using a generated Railway reference for better security.
 
 Notes:
 - This template pins Moltbot to a known-good version by default via Docker build arg `MOLTBOT_VERSION`.
-- A persistent volume at `/data` is automatically included in this template.
 
-4) Enable **Public Networking** (HTTP). Railway will assign a domain.
-5) Deploy.
+3) **Add a Volume:**
+   - Click "Volumes" in the left sidebar
+   - Click "New Volume"
+   - Name it: `data` (or any name you prefer)
+   - Click "Create volume"
+
+4) **Connect the Volume to your service:**
+   - In your service → Settings → Volumes
+   - Click "Connect Volume"
+   - Select the `data` volume you just created
+   - Mount path: `/data`
+
+5) Enable **Public Networking** (HTTP). Railway will assign a domain.
+6) Deploy.
 
 Then:
 - Visit `https://<your-app>.up.railway.app/setup`
