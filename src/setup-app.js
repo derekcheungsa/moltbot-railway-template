@@ -274,6 +274,25 @@
     };
   }
 
+  // Test endpoint button handler
+  var testBtn = document.getElementById('test');
+  if (testBtn) {
+    testBtn.onclick = function () {
+      logEl.textContent = 'Testing endpoint...\n';
+      httpJson('/setup/api/test')
+        .then(function (result) {
+          logEl.textContent = 'TEST RESULT:\n';
+          logEl.textContent += '============\n';
+          logEl.textContent += JSON.stringify(result, null, 2) + '\n';
+          logEl.textContent += '============\n';
+          if (result.test === 'ok') {
+            logEl.textContent += '\n✅ Routing and authentication work!\n';
+          }
+        })
+        .catch(function (e) { logEl.textContent += 'Error: ' + String(e) + '\n'; });
+    };
+  }
+
   refreshStatus();
 
   // Run pre-flight checks on load

@@ -671,8 +671,9 @@ app.get("/setup", requireSetupAuth, (_req, res) => {
     <button id="pairingApprove" style="background:#1f2937; margin-left:0.5rem">Approve pairing</button>
     <button id="reset" style="background:#444; margin-left:0.5rem">Reset setup</button>
     <button id="debug" style="background:#1f2937; margin-left:0.5rem">Debug info</button>
+    <button id="test" style="background:#059669; margin-left:0.5rem">Test endpoint</button>
     <pre id="log" style="white-space:pre-wrap"></pre>
-    <p class="muted">Reset deletes the Moltbot config file so you can rerun onboarding. Pairing approval lets you grant DM access when dmPolicy=pairing. Debug info shows current system state.</p>
+    <p class="muted">Reset deletes the Moltbot config file so you can rerun onboarding. Pairing approval lets you grant DM access when dmPolicy=pairing. Debug info shows current system state. Test endpoint verifies routing works.</p>
   </div>
 
   <script src="/setup/app.js"></script>
@@ -993,6 +994,12 @@ app.post("/setup/api/pairing/approve", requireSetupAuth, async (req, res) => {
   }
   const r = await runCmd(MOLTBOT_NODE, moltArgs(["pairing", "approve", String(channel), String(code)]));
   return res.status(r.code === 0 ? 200 : 500).json({ ok: r.code === 0, output: r.output });
+});
+
+// Simple test endpoint to verify routing works
+app.get("/setup/api/test", requireSetupAuth, (_req, res) => {
+  console.error('[TEST] Test endpoint called');
+  res.json({ test: "ok", message: "Routing works!" });
 });
 
 // Debug endpoint to view config and gateway status
