@@ -999,30 +999,53 @@ app.post("/setup/api/pairing/approve", requireSetupAuth, async (req, res) => {
 // Debug endpoint to view config and gateway status
 app.get("/setup/api/debug", requireSetupAuth, async (_req, res) => {
   try {
+    console.error('[DEBUG] Building debug info...');
+
+    const cfgPath = configPath();
+    console.error('[DEBUG] configPath():', cfgPath);
+
+    const cfgExists = fs.existsSync(cfgPath);
+    console.error('[DEBUG] config exists:', cfgExists);
+
+    const stateExists = fs.existsSync(STATE_DIR);
+    console.error('[DEBUG] state dir exists:', stateExists);
+
+    const workspaceExists = fs.existsSync(WORKSPACE_DIR);
+    console.error('[DEBUG] workspace dir exists:', workspaceExists);
+
+    const configured = isConfigured();
+    console.error('[DEBUG] isConfigured():', configured);
+
     const info = {
-      configPath: configPath(),
-      configExists: fs.existsSync(configPath()),
+      configPath: cfgPath,
+      configExists: cfgExists,
       stateDir: STATE_DIR,
-      stateDirExists: fs.existsSync(STATE_DIR),
+      stateDirExists: stateExists,
       workspaceDir: WORKSPACE_DIR,
-      workspaceDirExists: fs.existsSync(WORKSPACE_DIR),
+      workspaceDirExists: workspaceExists,
       gatewayRunning: gatewayProc !== null,
       gatewayProcExists: gatewayProc !== null,
       gatewayProcPid: gatewayProc?.pid || null,
-      configured: isConfigured(),
+      configured: configured,
     };
+
+    console.error('[DEBUG] Built info object:', JSON.stringify(info));
 
     if (info.configExists) {
       try {
-        info.configContent = JSON.parse(fs.readFileSync(configPath(), "utf8"));
+        info.configContent = JSON.parse(fs.readFileSync(cfgPath, "utf8"));
+        console.error('[DEBUG] Config content loaded');
       } catch (e) {
         info.configError = String(e);
+        console.error('[DEBUG] Config error:', e);
       }
     }
 
+    console.error('[DEBUG] Sending response');
     res.json(info);
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    console.error('[DEBUG] Error in debug endpoint:', err);
+    res.status(500).json({ error: String(err), stack: err.stack });
   }
 });
 

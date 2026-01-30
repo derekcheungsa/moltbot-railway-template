@@ -244,6 +244,15 @@
       logEl.textContent = 'Fetching debug info...\n';
       httpJson('/setup/api/debug')
         .then(function (info) {
+          // Check for error response
+          if (info.error) {
+            logEl.textContent = 'ERROR: ' + info.error + '\n';
+            if (info.stack) {
+              logEl.textContent += 'Stack: ' + info.stack + '\n';
+            }
+            return;
+          }
+
           logEl.textContent = 'DEBUG INFO:\n';
           logEl.textContent += '================\n';
           logEl.textContent += 'Configured: ' + info.configured + '\n';
