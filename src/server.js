@@ -862,10 +862,10 @@ app.post("/setup/api/run", requireSetupAuth, async (req, res) => {
   if (ok) {
     console.error('[DEBUG] Configuring gateway settings...');
 
-    // Ensure gateway token is written into config so the browser UI can authenticate reliably.
-    // (We also enforce loopback bind since the wrapper proxies externally.)
-    await runCmd(MOLTBOT_NODE, moltArgs(["config", "set", "gateway.auth.mode", "token"]));
-    await runCmd(MOLTBOT_NODE, moltArgs(["config", "set", "gateway.auth.token", MOLTBOT_GATEWAY_TOKEN]));
+    // Configure gateway to run in loopback mode without token authentication.
+    // The wrapper protects the gateway with SETUP_PASSWORD, so token auth is redundant
+    // and makes it difficult for the web UI to authenticate.
+    await runCmd(MOLTBOT_NODE, moltArgs(["config", "set", "gateway.auth.mode", "none"]));
     await runCmd(MOLTBOT_NODE, moltArgs(["config", "set", "gateway.bind", "loopback"]));
     await runCmd(MOLTBOT_NODE, moltArgs(["config", "set", "gateway.port", String(INTERNAL_GATEWAY_PORT)]));
 
