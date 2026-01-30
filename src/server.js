@@ -77,8 +77,7 @@ function moltArgs(args) {
 }
 
 function configPath() {
-  return
-    process.env.MOLTBOT_CONFIG_PATH?.trim() ||
+  return process.env.MOLTBOT_CONFIG_PATH?.trim() ||
     process.env.CLAWDBOT_CONFIG_PATH?.trim() ||
     path.join(STATE_DIR, "moltbot.json");
 }
