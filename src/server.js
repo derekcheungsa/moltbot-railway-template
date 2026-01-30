@@ -764,6 +764,7 @@ function buildOnboardArgs(payload) {
     const map = {
       "openai-api-key": "--openai-api-key",
       "apiKey": "--anthropic-api-key",
+      "atlascloud-api-key": "--atlascloud-api-key",
       "openrouter-api-key": "--openrouter-api-key",
       "ai-gateway-api-key": "--ai-gateway-api-key",
       "moonshot-api-key": "--moonshot-api-key",
@@ -862,7 +863,7 @@ app.post("/setup/api/run", requireSetupAuth, async (req, res) => {
           MOLTBOT_NODE,
           moltArgs(["config", "set", "--json", "channels.telegram", JSON.stringify(cfgObj)]),
         );
-        const get = await runCmd(CLAWDBOT_NODE, clawArgs(["config", "get", "channels.telegram"]));
+        const get = await runCmd(MOLTBOT_NODE, moltArgs(["config", "get", "channels.telegram"]));
         extra += `\n[telegram config] exit=${set.code} (output ${set.output.length} chars)\n${set.output || "(no output)"}`;
         extra += `\n[telegram verify] exit=${get.code} (output ${get.output.length} chars)\n${get.output || "(no output)"}`;
       }
@@ -882,10 +883,10 @@ app.post("/setup/api/run", requireSetupAuth, async (req, res) => {
           },
         };
         const set = await runCmd(
-          CLAWDBOT_NODE,
-          clawArgs(["config", "set", "--json", "channels.discord", JSON.stringify(cfgObj)]),
+          MOLTBOT_NODE,
+          moltArgs(["config", "set", "--json", "channels.discord", JSON.stringify(cfgObj)]),
         );
-        const get = await runCmd(CLAWDBOT_NODE, clawArgs(["config", "get", "channels.discord"]));
+        const get = await runCmd(MOLTBOT_NODE, moltArgs(["config", "get", "channels.discord"]));
         extra += `\n[discord config] exit=${set.code} (output ${set.output.length} chars)\n${set.output || "(no output)"}`;
         extra += `\n[discord verify] exit=${get.code} (output ${get.output.length} chars)\n${get.output || "(no output)"}`;
       }
@@ -901,10 +902,10 @@ app.post("/setup/api/run", requireSetupAuth, async (req, res) => {
           appToken: payload.slackAppToken?.trim() || undefined,
         };
         const set = await runCmd(
-          CLAWDBOT_NODE,
-          clawArgs(["config", "set", "--json", "channels.slack", JSON.stringify(cfgObj)]),
+          MOLTBOT_NODE,
+          moltArgs(["config", "set", "--json", "channels.slack", JSON.stringify(cfgObj)]),
         );
-        const get = await runCmd(CLAWDBOT_NODE, clawArgs(["config", "get", "channels.slack"]));
+        const get = await runCmd(MOLTBOT_NODE, moltArgs(["config", "get", "channels.slack"]));
         extra += `\n[slack config] exit=${set.code} (output ${set.output.length} chars)\n${set.output || "(no output)"}`;
         extra += `\n[slack verify] exit=${get.code} (output ${get.output.length} chars)\n${get.output || "(no output)"}`;
       }
